@@ -1,4 +1,4 @@
-//Michael Kupfer ID:209493246
+//Michael Kupfer
 import java.awt.*;
 import java.util.Objects;
 
