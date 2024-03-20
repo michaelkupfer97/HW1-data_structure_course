@@ -56,19 +56,14 @@ public class Library {
      * @throws Exception if the book isn't in the library.
      */
     public Book borrowBook(int uniqueID) throws Exception {
-        boolean isDeleted = false;
-        Book borrowedBook = null;
-        for (int i = 0; i < books.size() && !isDeleted; i++) {
+        for (int i = 0; i < books.size(); i++) {
             Book currentBook = books.get(i);
             if (currentBook.uniqueID == uniqueID) {
-                //adding the unique book to the loaned book array.
                 loanedBooks.addToEnd(currentBook);
-                borrowedBook = currentBook;
-                isDeleted = true;
+                return currentBook;
             }
         }
-        if (!isDeleted) throw new Exception("The Book is not in the Library.");
-        return borrowedBook;
+        return null; // Book not found
     }
 
     /***
@@ -79,18 +74,14 @@ public class Library {
      * @throws Exception if the author has no books in library.
      */
     public DataStructure<Book> borrowAllBooks(String author_name) throws Exception {
-        //all the books of the author will be saved here.
         DataStructure<Book> borrowedBooks = new DataStructure<>();
         for (int i = 0; i < books.size(); i++) {
             Book currentBook = books.get(i);
-            //check each book in the library for a mach author.
             if (currentBook.author.equals(author_name)) {
-                //add the book if the authors are the same.
                 borrowedBooks.addToEnd(currentBook);
                 loanedBooks.addToEnd(currentBook);
             }
         }
-        if (borrowedBooks.size() == 0) throw new Exception("This author has no books in the library.");
         return borrowedBooks;
     }
 
@@ -162,49 +153,44 @@ public class Library {
      * @throws Exception if there is no author in the library or the index are wrong.
      */
     public String authorWithMostBooks() throws Exception {
-        int[] counterArr = new int[books.size()];
-        String[] authorsArr = new String[books.size()];
-        int numOfAuthors=0;
-        //goes over all books array and count the number each author is appear.
+        if (books.size() == 0) {
+            return "No authors in the library.";
+        }
+
+        String authorWithMostBooks = null;
+        int maxBookCount = 0;
+
         for (int i = 0; i < books.size(); i++) {
-            Book currentBook = books.get(i);
-            String author=currentBook.author;
-            int index=authorIndex(authorsArr,numOfAuthors,author);
-            //if we get -1, the author is not in the new array, and we need to put him in with count as 1.
-            if (index==-1){
-                authorsArr[numOfAuthors]=author;
-                counterArr[numOfAuthors]=1;
-                numOfAuthors++;
-            }
-            //if he is in the array already we just do counter++.
-            else
-                counterArr[index]++;
-        }
-        //search for the author with the highest counter.
-        int max=0;
-        String maxAuthor=null;
-        for (int i =0; i<numOfAuthors;i++){
-            if (counterArr[i]>max){
-                max=counterArr[i];
-                maxAuthor=authorsArr[i];
+            String currentAuthor = books.get(i).author;
+            int authorBookCount = countBooksByAuthor(currentAuthor);
+            if (authorBookCount > maxBookCount) {
+                maxBookCount = authorBookCount;
+                authorWithMostBooks = currentAuthor;
+            } else if (authorBookCount == maxBookCount && authorWithMostBooks != null) {
+                // If there's a tie for the maximum count, append the author's name
+                authorWithMostBooks += ", " + currentAuthor;
             }
         }
-        if (maxAuthor.equals(null))throw new Exception("There is no authors in the library.");
-        return maxAuthor;
+
+        if (authorWithMostBooks == null) {
+            return "No authors with books in the library.";
+        } else if (authorWithMostBooks.contains(",")) {
+            // Multiple authors with the same maximum count
+            return "Multiple authors with the same maximum count of books: " + authorWithMostBooks;
+        } else {
+            return authorWithMostBooks;
+        }
     }
 
-    /***
-     *  Check if the author is already in authorArr, if yes, return the index of him, if not return -1.
-     * @param authorArr the array of all authors in the library.
-     * @param numOfAuthors the number of authors so far, for Optimized testing.
-     * @param author the name of author we want to check.
-     * @return index of the author we want to add to his counter, -1 id not exist and then create new slot for him.
-     */
-    private int authorIndex( String[]authorArr , int numOfAuthors , String author ) {
-        for (int i = 0; i < numOfAuthors; i++)
-            if (authorArr[i].equals(author))
-                return i;
-        return -1;
+    // Helper method to count books by a specific author
+    private int countBooksByAuthor(String author) throws Exception {
+        int count = 0;
+        for (int i = 0; i < books.size(); i++) {
+            if (books.get(i).author.equals(author)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /***
